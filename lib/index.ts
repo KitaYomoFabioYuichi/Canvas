@@ -1,2 +1,4 @@
-export { Button } from './components/Button'
-export { Canvas } from './components/Canvas'
+import CanvasObject from "./canvas/CanvasObject"
+import Canvas from "./canvas/Canvas"
+
+export {Canvas, CanvasObject}
