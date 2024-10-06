@@ -1,12 +1,15 @@
+import CanvasInputManager from "./CanvasInput";
 import CanvasObject from "./CanvasObject";
 
 export default class CanvasObjectManager{
     private context:CanvasRenderingContext2D;
     private objectMap:{[id:number]:CanvasObject};
+    private inputManager:CanvasInputManager;
 
-    constructor(context:CanvasRenderingContext2D){
+    constructor(context:CanvasRenderingContext2D, inputManager:CanvasInputManager){
         this.context = context;
         this.objectMap = {};
+        this.inputManager = inputManager;
     }
 
     create(objectList:CanvasObject[]){
@@ -43,5 +46,9 @@ export default class CanvasObjectManager{
 
     getContext(){
         return this.context;
+    }
+
+    getInput(){
+        return this.inputManager;
     }
 }

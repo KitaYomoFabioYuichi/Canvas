@@ -55,12 +55,18 @@ class Bubble extends CanvasObject {
   draw(): void {
     const c = this.getContext();
 
+    let rx = this.x + Math.sin(this.timer) * 50;
+    let ry = this.y;
+
     c.beginPath();
-    c.arc(this.x + Math.sin(this.timer) * 50, this.y, 15, 0, 2 * Math.PI);
+    c.arc(rx, ry, 15, 0, 2 * Math.PI);
     c.fillStyle = "#FFFFFF";
     c.fill();
   }
 
+  distanceSquared(x1:number, y1:number, x2:number, y2:number){
+    return (x1-x2)**2 + (y1-y2)**2;
+  }
 }
 
 class BubbleGenerator extends CanvasObject {
@@ -73,16 +79,18 @@ class BubbleGenerator extends CanvasObject {
 
     this.timer += delta;
     if (this.timer < TIMER) return;
+    
 
     const canvas = this.getContext().canvas;
-
+    
     const bubble = new Bubble();
     bubble.y = canvas.height - 100;
     bubble.x = Math.random() * canvas.width;
-    this.instanceObject(new Bubble());
+    this.instanceObject(bubble);
 
     this.timer -= TIMER;
   }
+
   draw(): void { }
 
 }

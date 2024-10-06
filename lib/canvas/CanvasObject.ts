@@ -1,3 +1,4 @@
+import { CanvasInput } from "./CanvasInput";
 import CanvasObjectManager from "./CanvasObjectManager";
 
 export default abstract class CanvasObject{
@@ -27,6 +28,10 @@ export default abstract class CanvasObject{
     //utils
     getContext(){
         return this.objectManager?.getContext() as CanvasRenderingContext2D;
+    }
+
+    getInput(){
+        return this.objectManager?.getInput() as CanvasInput;
     }
 
     instanceObject(newObject:CanvasObject){
