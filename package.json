@@ -1,10 +1,10 @@
 {
-  "name": "yuu-canvas",
-  "private": true,
-  "version": "0.0.0",
+  "name": "@kitayomofabioyuichi/canvas",
+  "private": false,
+  "version": "1.0.1",
   "type": "module",
   "main": "dist/index.js",
-  "types": "dist/main.d.ts",
+  "types": "dist/index.d.ts",
   "files": [
     "dist"
   ],
