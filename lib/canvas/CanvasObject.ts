@@ -24,7 +24,7 @@ export default abstract class CanvasObject{
     getId(){
         return this.id;
     }
-
+    
     //utils
     getContext(){
         return this.objectManager?.getContext() as CanvasRenderingContext2D;

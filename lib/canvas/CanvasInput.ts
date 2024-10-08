@@ -16,19 +16,19 @@ export default class CanvasInputManager{
         return this.mousePressed && !this.prevMousePressed;
     }
 
-    isMouseReleased(){
+    isMouseJustReleased(){
         return !this.mousePressed && this.prevMousePressed;
     }
 
-    isInCanvas(){
+    isMouseInCanvas(){
         return this.inCanvas;
     }
 
-    justEnteredCanvas(){
+    isMouseJustEnteredCanvas(){
         return this.inCanvas && !this.prevInCanvas;
     }
 
-    justExitedCanvas(){
+    isMouseJustExitedCanvas(){
         return !this.inCanvas && this.prevInCanvas;
     }
 
@@ -55,13 +55,13 @@ export interface CanvasInput{
 
     isMouseJustPressed: ()=>boolean;
 
-    isMouseReleased: ()=>boolean;
+    isMouseJustReleased: ()=>boolean;
 
-    isInCanvas: ()=>boolean;
+    isMouseInCanvas: ()=>boolean;
 
-    justEnteredCanvas: ()=>boolean;
+    isMouseJustEnteredCanvas: ()=>boolean;
 
-    justExitedCanvas: ()=>boolean;
+    isMouseJustExitedCanvas: ()=>boolean;
 
     getMousePosition: ()=>{x:number, y:number};
 

@@ -1,112 +1,56 @@
 import { Canvas, CanvasObject } from "../lib"
 
-class WaveObject extends CanvasObject {
-  timer = 0;
+class CircleObject extends CanvasObject {
+    acc:number = 0;
+    p:number = 0;
+    radious:number = 0;
+    position:{x:number, y:number} = {x:0, y:0}
 
-  create(): void { }
+    create(): void { }
+    update(delta: number): void {
+        const MAX_RADIOUS = 100;
 
-  update(delta: number): void {
-    this.timer += delta;
-  }
+        const input = this.getInput();
+        if(input.isMouseInCanvas()) this.position = input.getMousePosition();
+        
+        const shouldGrow = input.isMousePressed() && input.isMouseInCanvas();
+        
+        this.radious = this.lerpWithDelta(this.radious, shouldGrow?MAX_RADIOUS:0, 0.99999, delta);
 
-  draw(): void {
-    const c = this.getContext();
-    const canvas = c.canvas;
-
-    const PAD = 4;
-
-    const waveVPos = canvas.height * 3 / 4;
-    const waveHPos = -PAD;
-    const waveWidth = canvas.width + 2 * PAD;
-
-    const waveF = 0.003;
-    const waveH = waveVPos / 15;
-
-    c.beginPath();
-
-    c.moveTo(waveHPos, 0);
-    c.lineTo(0, waveVPos);
-    for (let i = waveHPos; i < waveWidth; i += 1) {
-      const y = waveVPos + Math.sin(this.timer + i * waveF) * waveH;
-      c.lineTo(i, y);
+        if(input.isMouseJustPressed()) console.log("Pressed");
+        if(input.isMouseJustReleased()) console.log("Released");
+        if(input.isMouseJustEnteredCanvas()) console.log("Entered");
+        if(input.isMouseJustExitedCanvas()) console.log("Exited");
     }
-    c.lineTo(waveHPos + waveWidth, 0);
-
-    c.fillStyle = "#2563eb";
-    c.fill();
-  }
-}
-
-class Bubble extends CanvasObject {
-  timer = 0;
-  x = 0;
-  y = 0;
-
-  create(): void {}
-
-  update(delta: number): void {
-    this.timer += delta;
-    this.y -= 200 * delta;
-    if (this.y < -10) {
-      this.destroy();
+    
+    draw(): void {
+        const context = this.getContext();
+        context.beginPath();
+        context.arc(this.position.x, this.position.y, this.radious, 0, Math.PI*2);
+        context.fill();
     }
-  }
 
-  draw(): void {
-    const c = this.getContext();
+    private lerp(i:number, f:number, p:number){
+        return i + (f-i)*p;
+    }
 
-    let rx = this.x + Math.sin(this.timer) * 50;
-    let ry = this.y;
-
-    c.beginPath();
-    c.arc(rx, ry, 15, 0, 2 * Math.PI);
-    c.fillStyle = "#FFFFFF";
-    c.fill();
-  }
-
-  distanceSquared(x1:number, y1:number, x2:number, y2:number){
-    return (x1-x2)**2 + (y1-y2)**2;
-  }
+    private lerpWithDelta(i:number, f:number, ps:number, delta:number){
+        return this.lerp(i, f, 1-Math.pow(1-ps, delta));
+    }
 }
 
-class BubbleGenerator extends CanvasObject {
-  timer = 0;
-
-  create(): void {}
-
-  update(delta: number): void {
-    const TIMER = 2;
-
-    this.timer += delta;
-    if (this.timer < TIMER) return;
-    
-
-    const canvas = this.getContext().canvas;
-    
-    const bubble = new Bubble();
-    bubble.y = canvas.height - 100;
-    bubble.x = Math.random() * canvas.width;
-    this.instanceObject(bubble);
-
-    this.timer -= TIMER;
-  }
-
-  draw(): void { }
-
-}
-
-const objects = [new WaveObject(), new BubbleGenerator()];
+const objects:CanvasObject[] = [new CircleObject()];
 
 function App() {
-  return (
-    <div style={{
-      height: "100%",
-      display: "flex",
-      flexDirection: "column",
-    }}>
-      <Canvas style={{ flex: 1 }} canvasObjects={objects} />
-    </div>
-  )
+    return (
+        <div style={{
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+        }}>
+            <Canvas style={{ flex: 1 }} canvasObjects={objects} />
+        </div>
+    )
 }
 
 export default App

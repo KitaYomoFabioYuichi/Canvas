@@ -7,13 +7,15 @@ import CanvasInputManager from "./CanvasInput";
 interface CanvasProps extends HTMLAttributes<HTMLElement>{
     staticCanvas?:boolean,
     canvasObjects?:CanvasObject[],
-    clearAfterUpdate?:boolean
+    clearAfterUpdate?:boolean,
+    fps?:number
 }
 
 export default function Canvas({
     canvasObjects = [],
     clearAfterUpdate = true,
     staticCanvas = false,
+    fps,
     ...props
 }:CanvasProps){
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -39,6 +41,7 @@ export default function Canvas({
         //Handle Input
         const inputManager = new CanvasInputManager();
 
+        //Mouse Input
         const mousePressed = (ev:MouseEvent)=>{
             if(ev.button === 0) inputManager.mousePressed = true;
         }
@@ -61,38 +64,72 @@ export default function Canvas({
             inputManager.mousePosition.y = e.clientY - rect.top;
         }
 
-        canvas.addEventListener("mousedown", mousePressed);
-        canvas.addEventListener("mouseup", mouseReleased);
+        window.addEventListener("mousedown", mousePressed);
+        window.addEventListener("mouseup", mouseReleased);
         canvas.addEventListener("mouseenter", mouseEntered);
         canvas.addEventListener("mouseleave", mouseLeft);
         window.addEventListener("mousemove", mouseMoved);
         
+        //TouchScreen Input
+        const handleSetPosition = (x:number, y:number)=>{
+            const rect = canvas.getBoundingClientRect();
+            inputManager.mousePosition.x = x - rect.left;
+            inputManager.mousePosition.y = y - rect.top;
+
+            if(x >= 0 && x < canvas.width && y >= 0 && y < canvas.height){
+                inputManager.inCanvas = true;
+            }else{
+                inputManager.inCanvas = false;
+            }
+        }
+
+        const touchStart = (e:TouchEvent)=>{
+            inputManager.mousePressed = true;
+            handleSetPosition(e.touches[0].clientX, e.touches[0].clientY);
+        }
+
+        const touchEnd = ()=>{
+            inputManager.mousePressed = false;
+            inputManager.inCanvas = false;
+        }
+
+        const touchMove = (e:TouchEvent)=>{
+            handleSetPosition(e.touches[0].clientX, e.touches[0].clientY);
+        }
+
+        window.addEventListener("touchstart", touchStart);
+        window.addEventListener("touchend", touchEnd);
+        window.addEventListener("touchmove", touchMove);
+
         //Handle Objects
         const objectManager = new CanvasObjectManager(context, inputManager);
         objectManager.create(canvasObjects);
 
         //Handle Animation
+        const FPS_INTERVAL = fps?1000/fps:undefined;
+
         let id = 0;
+
         let prev = 0;
+        let lag = 0;
         
-        const render = (timestamp:number)=>{
+        const render = (now:number)=>{
             if(!staticCanvas) id = window.requestAnimationFrame(render);
+            
+            let elapsed = Math.min((now-prev), 32);
+            prev = now;
+            lag += elapsed;
 
-            if(clearAfterUpdate) 
-                context.clearRect(0, 0, canvas.width, canvas.height);
+            if(!FPS_INTERVAL || lag >= FPS_INTERVAL){
+                if(clearAfterUpdate) context.clearRect(0, 0, canvas.width, canvas.height);
+                
+                if(FPS_INTERVAL) lag -= FPS_INTERVAL;
 
-            let delta = 0;
-            if(prev) delta = Math.min((timestamp-prev), 32)/1000;
-            prev = timestamp
-
-            //Update
-            objectManager.update(delta);
-
-            //Draw
-            objectManager.draw();
-
-            //Update Input
-            inputManager.update();
+                //Update
+                objectManager.update((FPS_INTERVAL?FPS_INTERVAL:elapsed)/1000);
+                objectManager.draw();
+                inputManager.update();
+            }
             
         }
         render(0);
@@ -101,11 +138,15 @@ export default function Canvas({
             if(id) window.cancelAnimationFrame(id);
             window.removeEventListener("resize", handleResize);
             
-            canvas.removeEventListener("mousedown", mousePressed);
-            canvas.removeEventListener("mouseup", mouseReleased);
+            window.removeEventListener("mousedown", mousePressed);
+            window.removeEventListener("mouseup", mouseReleased);
             canvas.removeEventListener("mouseenter", mouseEntered);
             canvas.removeEventListener("mouseleave", mouseLeft);
             window.removeEventListener("mousemove", mouseMoved);
+
+            window.removeEventListener("touchstart", touchStart);
+            window.removeEventListener("touchend", touchEnd);
+            window.removeEventListener("touchmove", touchMove);
         }
     },[canvasObjects, staticCanvas, clearAfterUpdate]);
 
