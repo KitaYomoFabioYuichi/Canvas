@@ -28,9 +28,8 @@ export default class CanvasObjectManager{
     }
 
     addObject(newObject:CanvasObject){
-        newObject.init(this);
         this.objectMap[newObject.getId()] = newObject;
-        newObject.create();
+        newObject.handleCreate(this);
     }
 
     deleteObject(object:CanvasObject|number){
@@ -38,6 +37,10 @@ export default class CanvasObjectManager{
         if(object instanceof CanvasObject) deleteId = object.getId();
         else deleteId = object;
         delete this.objectMap[deleteId];
+    }
+
+    getObjects(){
+        return Object.values(this.objectMap);
     }
 
     getObject(objectId:number){

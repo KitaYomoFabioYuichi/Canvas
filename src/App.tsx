@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import { Canvas, CanvasObject } from "../lib"
 
 class CircleObject extends CanvasObject {
@@ -39,16 +40,57 @@ class CircleObject extends CanvasObject {
     }
 }
 
-const objects:CanvasObject[] = [new CircleObject()];
+class TestObject extends CanvasObject{
+    x:number = 0;
+    y:number = 0;
+    sx:number = 0;
+    sy:number = 0;
+
+    create(): void {
+        const c = this.getContext();
+        this.x = c.canvas.width/2;
+        this.y = c.canvas.height/2;
+
+        this.sx = 50;
+        this.sy = 100;
+    }
+    update(delta: number): void {
+        const c = this.getContext();
+
+        this.x += this.sx*delta;
+        this.y += this.sy*delta;
+
+        if((this.x < 0 && this.sx < 0) || (this.x > c.canvas.width && this.sx > 0)){
+            this.sx *= -1;
+        }
+
+        if((this.y < 0 && this.sy < 0) || (this.y > c.canvas.height && this.sy > 0)){
+            this.sy *= -1;
+        }
+    }
+    draw(): void {
+        const c = this.getContext();
+
+        c.beginPath();
+        c.arc(this.x, this.y, 50, 0, Math.PI*2);
+        c.fill();
+    }
+    
+}
 
 function App() {
+    const [state, setState] = useState(false);
+
+    const canvasObjects = useRef([new CircleObject(), new TestObject()]).current;
+
     return (
         <div style={{
             height: "100%",
             display: "flex",
             flexDirection: "column",
         }}>
-            <Canvas style={{ flex: 1 }} canvasObjects={objects} />
+            <Canvas style={{ flex: 1 }} canvasObjects={canvasObjects} fps={60} scaleX={2} scaleY={0.5}/>
+            <button onClick={()=>setState(!state)}>{String(state)}</button>
         </div>
     )
 }

@@ -6,9 +6,11 @@ export default abstract class CanvasObject{
 
     private id:number;
     private objectManager:CanvasObjectManager|undefined;
+    private created:boolean;
 
     constructor(){
         this.id = CanvasObject.nextId++;
+        this.created = false;
     }
     
     //Abtsract
@@ -17,14 +19,15 @@ export default abstract class CanvasObject{
     abstract draw():void;
 
     //Don't use
-    init(objectManager:CanvasObjectManager){
-        this.objectManager = objectManager;
-    }
-
     getId(){
         return this.id;
     }
     
+    handleCreate(objectManager:CanvasObjectManager){
+        this.objectManager = objectManager;
+        if(!this.created) this.create();
+    }
+
     //utils
     getContext(){
         return this.objectManager?.getContext() as CanvasRenderingContext2D;
@@ -32,6 +35,10 @@ export default abstract class CanvasObject{
 
     getInput(){
         return this.objectManager?.getInput() as CanvasInput;
+    }
+
+    getObjects(){
+        return this.objectManager?.getObjects() as CanvasObject[];
     }
 
     instanceObject(newObject:CanvasObject){
