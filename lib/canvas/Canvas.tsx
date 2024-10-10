@@ -8,7 +8,9 @@ interface CanvasProps extends HTMLAttributes<HTMLElement>{
     staticCanvas?:boolean,
     canvasObjects?:CanvasObject[],
     clearAfterUpdate?:boolean,
-    fps?:number
+    fps?:number,
+    scaleX?:number,
+    scaleY?:number
 }
 
 export default function Canvas({
@@ -16,6 +18,8 @@ export default function Canvas({
     clearAfterUpdate = true,
     staticCanvas = false,
     fps,
+    scaleX = 1.0,
+    scaleY = 1.0,
     ...props
 }:CanvasProps){
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -31,8 +35,10 @@ export default function Canvas({
             if(!parentElement) return;
 
             const parentRect = parentElement.getBoundingClientRect();
-            canvas.width = parentRect.width;
-            canvas.height = parentRect.height;
+            canvas.width = parentRect.width/scaleX;
+            canvas.height = parentRect.height/scaleY;
+            canvas.style.width = parentRect.width + "px";
+            canvas.style.height = parentRect.height + "px";
         }
         
         handleResize();
@@ -60,8 +66,8 @@ export default function Canvas({
 
         const mouseMoved = (e:MouseEvent)=>{
             const rect = canvas.getBoundingClientRect();
-            inputManager.mousePosition.x = e.clientX - rect.left;
-            inputManager.mousePosition.y = e.clientY - rect.top;
+            inputManager.mousePosition.x = (e.clientX - rect.left)/scaleX;
+            inputManager.mousePosition.y = (e.clientY - rect.top)/scaleY;
         }
 
         window.addEventListener("mousedown", mousePressed);
@@ -71,12 +77,15 @@ export default function Canvas({
         window.addEventListener("mousemove", mouseMoved);
         
         //TouchScreen Input
-        const handleSetPosition = (x:number, y:number)=>{
+        const handleSetTouchPosition = (x:number, y:number)=>{
             const rect = canvas.getBoundingClientRect();
-            inputManager.mousePosition.x = x - rect.left;
-            inputManager.mousePosition.y = y - rect.top;
+            inputManager.mousePosition.x = (x - rect.left)/scaleX;
+            inputManager.mousePosition.y = (y - rect.top)/scaleY;
+            
+            const canvasOuterWidth = canvas.width*scaleX;
+            const canvasOuterHeight = canvas.height*scaleY;
 
-            if(x >= 0 && x < canvas.width && y >= 0 && y < canvas.height){
+            if(x >= 0 && x < canvasOuterWidth && y >= 0 && y < canvasOuterHeight){
                 inputManager.inCanvas = true;
             }else{
                 inputManager.inCanvas = false;
@@ -85,7 +94,7 @@ export default function Canvas({
 
         const touchStart = (e:TouchEvent)=>{
             inputManager.mousePressed = true;
-            handleSetPosition(e.touches[0].clientX, e.touches[0].clientY);
+            handleSetTouchPosition(e.touches[0].clientX, e.touches[0].clientY);
         }
 
         const touchEnd = ()=>{
@@ -94,7 +103,7 @@ export default function Canvas({
         }
 
         const touchMove = (e:TouchEvent)=>{
-            handleSetPosition(e.touches[0].clientX, e.touches[0].clientY);
+            handleSetTouchPosition(e.touches[0].clientX, e.touches[0].clientY);
         }
 
         window.addEventListener("touchstart", touchStart);
@@ -112,7 +121,7 @@ export default function Canvas({
 
         let prev = 0;
         let lag = 0;
-        
+
         const render = (now:number)=>{
             if(!staticCanvas) id = window.requestAnimationFrame(render);
             
@@ -136,6 +145,7 @@ export default function Canvas({
 
         return ()=>{
             if(id) window.cancelAnimationFrame(id);
+
             window.removeEventListener("resize", handleResize);
             
             window.removeEventListener("mousedown", mousePressed);
@@ -148,7 +158,7 @@ export default function Canvas({
             window.removeEventListener("touchend", touchEnd);
             window.removeEventListener("touchmove", touchMove);
         }
-    },[canvasObjects, staticCanvas, clearAfterUpdate]);
+    },[canvasObjects, staticCanvas, clearAfterUpdate, fps, scaleX, scaleY]);
 
     return <div {...props}>
         <div className={styles.canvasContainer}>
